@@ -80,7 +80,8 @@ def get_block_html(title:str, authors:str, rate:str, tldr:str, pdf_url:str, affi
 
     <tr>
         <td style="padding: 8px 0;">
-            <a href="{pdf_url}" style="display: inline-block; text-decoration: none; font-size: 14px; font-weight: bold; color: #fff; background-color: #d9534f; padding: 8px 16px; border-radius: 4px;">PDF</a>
+            <!-- 修改点：按钮文字改为“阅读原文”，背景色改为蓝色 -->
+            <a href="{pdf_url}" style="display: inline-block; text-decoration: none; font-size: 14px; font-weight: bold; color: #fff; background-color: #0d6efd; padding: 8px 16px; border-radius: 4px;">阅读原文</a>
         </td>
     </tr>
 </table>
@@ -125,7 +126,18 @@ def render_email(papers:list[Paper]) -> str:
                 affiliations += ', ...'
         else:
             affiliations = 'Unknown Affiliation'
-        parts.append(get_block_html(p.title, authors, rate, p.tldr, p.pdf_url, affiliations))
+        
+        # --- 新增逻辑：将 PDF 直链转换为 arXiv 摘要页链接 ---
+        abs_url = p.pdf_url
+        if "arxiv.org/pdf/" in p.pdf_url:
+            # 将 /pdf/ 替换为 /abs/，并去掉末尾可能存在的 .pdf 后缀
+            abs_url = p.pdf_url.replace("/pdf/", "/abs/")
+            if abs_url.endswith(".pdf"):
+                abs_url = abs_url[:-4]
+        # ----------------------------------------------
+        
+        parts.append(get_block_html(p.title, authors, rate, p.tldr, abs_url, affiliations))
 
     content = '<br>' + '</br><br>'.join(parts) + '</br>'
     return framework.replace('__CONTENT__', content)
+  
